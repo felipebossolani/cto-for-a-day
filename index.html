@@ -144,7 +144,6 @@
   }
 
   .timer-bar.draining {
-    transition: width 5s linear;
     width: 0% !important;
   }
 
@@ -347,11 +346,120 @@
     pointer-events: none;
   }
 
+  /* DIFFICULTY MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 150;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  .modal {
+    background: #0D0D0D;
+    border: 1px solid #333;
+    padding: 32px 24px;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+  }
+
+  .modal-title {
+    font-size: 1.1rem;
+    color: #C0392B;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+
+  .modal-subtitle {
+    font-size: 0.75rem;
+    color: #555;
+    margin-bottom: 28px;
+    letter-spacing: 1px;
+  }
+
+  .difficulty-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-difficulty {
+    background: #1A1A1A;
+    color: #E0E0E0;
+    border: 1px solid #333;
+    padding: 14px 20px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .btn-difficulty:hover {
+    border-color: #C0392B;
+    background: #1F1F1F;
+  }
+
+  .btn-difficulty .diff-label {
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .btn-difficulty .diff-time {
+    font-size: 0.75rem;
+    color: #555;
+    letter-spacing: 1px;
+  }
+
+  .btn-difficulty.easy .diff-label { color: #00FF41; }
+  .btn-difficulty.easy:hover { border-color: #00FF41; }
+
+  .btn-difficulty.hard .diff-label { color: #E0E0E0; }
+  .btn-difficulty.hard:hover { border-color: #E0E0E0; }
+
+  .btn-difficulty.cto .diff-label { color: #C0392B; }
+  .btn-difficulty.cto:hover { border-color: #C0392B; }
+
   /* HIDDEN UTILITY */
   .hidden { display: none !important; }
 </style>
 </head>
 <body>
+
+<!-- DIFFICULTY MODAL -->
+<div class="modal-overlay" id="difficulty-modal">
+  <div class="modal">
+    <div class="modal-title">Selecione a Dificuldade</div>
+    <div class="modal-subtitle">[ QUANTO TEMPO VOCE AGUENTA? ]</div>
+    <div class="difficulty-options">
+      <button class="btn-difficulty easy" data-multiplier="3">
+        <span class="diff-label">Easy</span>
+        <span class="diff-time">15s por decisao</span>
+      </button>
+      <button class="btn-difficulty hard" data-multiplier="2">
+        <span class="diff-label">Hard</span>
+        <span class="diff-time">10s por decisao</span>
+      </button>
+      <button class="btn-difficulty cto" data-multiplier="1">
+        <span class="diff-label">CTO</span>
+        <span class="diff-time">5s por decisao</span>
+      </button>
+    </div>
+  </div>
+</div>
 
 <div class="flash-overlay" id="flash-overlay"></div>
 <div class="score-display hidden" id="score-display">0/0</div>
@@ -554,7 +662,7 @@ const VERDICTS = [
   { min: 10, max: 10, text: "Impossível. Você trapaceou ou nunca trabalhou em startup." }
 ];
 
-const TIMER_DURATION = 5000;
+let TIMER_DURATION = 5000;
 const ROUND_COUNT = 10;
 const NEXT_ROUND_DELAY = 1200;
 const TYPEWRITER_SPEED = 35;
@@ -615,6 +723,16 @@ function showScreen(id) {
   });
 }
 
+function openDifficultyModal() {
+  $("difficulty-modal").classList.add("active");
+}
+
+function selectDifficulty(multiplier) {
+  TIMER_DURATION = 5000 * multiplier;
+  $("difficulty-modal").classList.remove("active");
+  startGame();
+}
+
 function startGame() {
   initAudio();
   score = 0;
@@ -653,6 +771,7 @@ function loadRound() {
 
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
+      bar.style.transition = `width ${TIMER_DURATION / 1000}s linear`;
       bar.classList.add("draining");
       bar.style.width = "0%";
     });
@@ -789,12 +908,16 @@ function shareResult() {
   });
 }
 
-$("btn-start").addEventListener("click", startGame);
+$("btn-start").addEventListener("click", openDifficultyModal);
+document.querySelectorAll(".btn-difficulty").forEach(btn => {
+  btn.addEventListener("click", () => selectDifficulty(Number(btn.dataset.multiplier)));
+});
 $("btn-a").addEventListener("click", () => handleAnswer("a"));
 $("btn-b").addEventListener("click", () => handleAnswer("b"));
 $("btn-restart").addEventListener("click", () => {
   $("end-actions").classList.add("hidden");
-  startGame();
+  showScreen("start-screen");
+  openDifficultyModal();
 });
 $("btn-share").addEventListener("click", shareResult);
 </script>
