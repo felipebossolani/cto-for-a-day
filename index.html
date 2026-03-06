@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTO for a Day</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0D0D0D;
+    color: #E0E0E0;
+    font-family: 'Courier New', Consolas, monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 700px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  /* START SCREEN */
+  #start-screen .title {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: bold;
+    color: #C0392B;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+    text-shadow: 0 0 20px rgba(192, 57, 43, 0.4);
+  }
+
+  #start-screen .tagline {
+    font-size: clamp(0.8rem, 2.5vw, 1rem);
+    color: #666;
+    margin-bottom: 48px;
+    line-height: 1.6;
+  }
+
+  #start-screen .subtitle {
+    font-size: clamp(0.7rem, 2vw, 0.85rem);
+    color: #444;
+    margin-bottom: 32px;
+  }
+
+  .btn-start {
+    background: #C0392B;
+    color: #0D0D0D;
+    border: none;
+    padding: 16px 48px;
+    font-family: inherit;
+    font-size: 1.2rem;
+    font-weight: bold;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+
+  .btn-start:hover {
+    background: #E74C3C;
+    box-shadow: 0 0 30px rgba(192, 57, 43, 0.5);
+  }
+
+  /* GAME SCREEN */
+  #game-screen { display: none; }
+
+  .round-indicator {
+    font-size: 0.8rem;
+    color: #555;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+  }
+
+  .timer-bar-container {
+    width: 100%;
+    height: 6px;
+    background: #1A1A1A;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .timer-bar {
+    height: 100%;
+    background: #C0392B;
+    width: 100%;
+    transition: none;
+    position: relative;
+  }
+
+  .timer-bar.draining {
+    transition: width 5s linear;
+    width: 0% !important;
+  }
+
+  .timer-bar.pulse {
+    animation: timer-pulse 0.5s ease-in-out infinite;
+  }
+
+  @keyframes timer-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .question-text {
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    line-height: 1.6;
+    margin-bottom: 36px;
+    min-height: 80px;
+    color: #E0E0E0;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-option {
+    background: #1A1A1A;
+    color: #E0E0E0;
+    border: 1px solid #333;
+    padding: 16px 24px;
+    font-family: inherit;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+    min-height: 48px;
+    line-height: 1.4;
+  }
+
+  .btn-option:hover {
+    border-color: #C0392B;
+    background: #1F1F1F;
+  }
+
+  .btn-option.correct {
+    border-color: #00FF41;
+    background: rgba(0, 255, 65, 0.1);
+    color: #00FF41;
+  }
+
+  .btn-option.wrong {
+    border-color: #C0392B;
+    background: rgba(192, 57, 43, 0.15);
+    color: #C0392B;
+  }
+
+  .btn-option:disabled {
+    cursor: default;
+  }
+
+  /* TIMEOUT FLASH */
+  .flash-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(192, 57, 43, 0.3);
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .flash-overlay.active {
+    display: block;
+    animation: flash-fade 0.6s ease-out forwards;
+  }
+
+  @keyframes flash-fade {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* SCORE DISPLAY */
+  .score-display {
+    position: fixed;
+    top: 16px;
+    right: 24px;
+    font-size: 0.85rem;
+    color: #00FF41;
+    letter-spacing: 1px;
+  }
+
+  /* END SCREEN */
+  #end-screen { display: none; }
+
+  .memo-header {
+    border: 1px solid #333;
+    padding: 16px;
+    margin-bottom: 24px;
+    text-align: left;
+  }
+
+  .memo-header .label {
+    color: #C0392B;
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+
+  .memo-header .field {
+    color: #666;
+    font-size: 0.75rem;
+    margin-bottom: 4px;
+  }
+
+  .memo-body {
+    text-align: left;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+    line-height: 1.8;
+    min-height: 80px;
+    color: #E0E0E0;
+    margin-bottom: 8px;
+  }
+
+  .memo-score {
+    text-align: left;
+    font-size: 1.1rem;
+    color: #00FF41;
+    margin-bottom: 32px;
+    letter-spacing: 1px;
+  }
+
+  .cursor-blink {
+    animation: blink 0.7s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .btn-restart {
+    background: transparent;
+    color: #555;
+    border: 1px solid #333;
+    padding: 12px 32px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .btn-restart:hover {
+    color: #E0E0E0;
+    border-color: #666;
+  }
+
+  /* HIDDEN UTILITY */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="flash-overlay" id="flash-overlay"></div>
+<div class="score-display hidden" id="score-display">0/0</div>
+
+<div class="container">
+
+  <!-- START SCREEN -->
+  <div id="start-screen">
+    <div class="title">CTO for a Day</div>
+    <div class="tagline">
+      10 dilemas. 5 segundos cada. Sem Google. Sem comite.<br>
+      Voce eh o CTO agora.
+    </div>
+    <div class="subtitle">[ CLASSIFICADO // USO INTERNO ]</div>
+    <button class="btn-start" id="btn-start">INICIAR</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen">
+    <div class="round-indicator" id="round-indicator">ROUND 01/10</div>
+    <div class="timer-bar-container">
+      <div class="timer-bar" id="timer-bar"></div>
+    </div>
+    <div class="question-text" id="question-text"></div>
+    <div class="options">
+      <button class="btn-option" id="btn-a"></button>
+      <button class="btn-option" id="btn-b"></button>
+    </div>
+  </div>
+
+  <!-- END SCREEN -->
+  <div id="end-screen">
+    <div class="memo-header">
+      <div class="label">MEMO CONFIDENCIAL</div>
+      <div class="field">DE: Conselho de Administracao</div>
+      <div class="field">PARA: CTO Interino</div>
+      <div class="field">RE: Avaliacao de Desempenho</div>
+    </div>
+    <div class="memo-score" id="memo-score"></div>
+    <div class="memo-body" id="memo-body"></div>
+    <button class="btn-restart hidden" id="btn-restart">TENTAR DE NOVO</button>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    id: 1,
+    text: "Seu melhor engenheiro sênior recebeu uma proposta 40% maior. Ele gosta da empresa mas dinheiro fala alto. Você:",
+    optionA: { label: "Paga. Cobre a oferta e negocia retenção.", correct: true },
+    optionB: { label: "Deixa ir. Ninguém é insubstituível.", correct: false },
+    timeout_pick: "b"
+  },
+  {
+    id: 2,
+    text: "Sexta-feira, 17h, véspera de feriado prolongado. Deploy de feature crítica passou nos testes mas um dev junior tem 'um pressentimento ruim'. Você:",
+    optionA: { label: "Manda ver. Testes passaram, é isso.", correct: false },
+    optionB: { label: "Segura. Deploy na terça com olhos frescos.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 3,
+    text: "O monolito tem 8 anos. Time quer reescrever tudo em microserviços. Prazo estimado: 6 meses (leia-se 18). Você:",
+    optionA: { label: "Aprova o rewrite. O monolito vai morrer de qualquer jeito.", correct: false },
+    optionB: { label: "Aguenta. Strangler pattern, módulo por módulo.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 4,
+    text: "Tech lead quer adotar uma linguagem nova que só ele domina. Promete produtividade 3x. Você:",
+    optionA: { label: "Deixa experimentar num serviço isolado.", correct: false },
+    optionB: { label: "Bloqueia. Stack exótica sem suporte do time é risco.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 5,
+    text: "Um investidor em potencial quer acesso ao repositório para 'due diligence técnica'. Você:",
+    optionA: { label: "Libera. Investidor é prioridade.", correct: false },
+    optionB: { label: "Consulta jurídico primeiro. NDA e escopo definido.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 6,
+    text: "Produção caiu às 3h da manhã. Time fez hotfix às 5h. Agora são 9h e o hotfix tem um bug menor. Você:",
+    optionA: { label: "Outro hotfix. Resolve rápido.", correct: false },
+    optionB: { label: "Rollback. Time descansa, resolve amanhã com calma.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 7,
+    text: "Produto vai lançar em 2 dias. QA encontrou 3 bugs de baixa severidade. PM quer adiar. Você:",
+    optionA: { label: "Lança. Bugs menores, prazo é real, corrige no próximo sprint.", correct: true },
+    optionB: { label: "Adia. Zero bugs é o padrão.", correct: false },
+    timeout_pick: "b"
+  },
+  {
+    id: 8,
+    text: "Time pede 2 sprints dedicados para pagar tech debt. CEO quer features. Você:",
+    optionA: { label: "Aprova. Tech debt é investimento, não luxo.", correct: true },
+    optionB: { label: "Nega. Features primeiro, debt depois.", correct: false },
+    timeout_pick: "b"
+  },
+  {
+    id: 9,
+    text: "Dev júnior derrubou produção por não seguir o processo de deploy. Primeira vez dele. Você:",
+    optionA: { label: "Demite. Exemplo para o time.", correct: false },
+    optionB: { label: "Conversa. Melhora o processo e faz post-mortem.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 10,
+    text: "Budget para contratar: 1 sênior ou 3 juniors. Projeto complexo com deadline apertado. Você:",
+    optionA: { label: "1 sênior. Qualidade > quantidade.", correct: true },
+    optionB: { label: "3 juniors. Mais mãos, mais velocidade.", correct: false },
+    timeout_pick: "b"
+  },
+  {
+    id: 11,
+    text: "CEO quer um dashboard 'bonitinho' para mostrar ao board. Não tem valor técnico. Você:",
+    optionA: { label: "Faz. Escolha suas batalhas, CEO feliz = budget aprovado.", correct: true },
+    optionB: { label: "Recusa. Time não é fábrica de PowerPoint.", correct: false },
+    timeout_pick: "b"
+  },
+  {
+    id: 12,
+    text: "Equipe de segurança bloqueou um deploy por vulnerabilidade média. Time acha que é falso positivo. Você:",
+    optionA: { label: "Bypassa segurança. Time sabe o que faz.", correct: false },
+    optionB: { label: "Espera aprovação. Não bypassa segurança.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 13,
+    text: "O sistema caiu por uma decisão arquitetural SUA de 6 meses atrás. Board quer explicações. Você:",
+    optionA: { label: "Conta a verdade. Assume o erro e apresenta o plano de correção.", correct: true },
+    optionB: { label: "Culpa a complexidade. Ninguém previa esse cenário.", correct: false },
+    timeout_pick: "b"
+  },
+  {
+    id: 14,
+    text: "Dev senior sumiu. Não responde há 2 dias. Projeto crítico parado. Você:",
+    optionA: { label: "Começa processo de demissão. Abandono é inaceitável.", correct: false },
+    optionB: { label: "Espera mais 2 dias. Pode ser emergência pessoal.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 15,
+    text: "Dois tech leads estão brigando na daily sobre arquitetura. Time está desconfortável. Você:",
+    optionA: { label: "Deixa resolver entre eles. São adultos.", correct: false },
+    optionB: { label: "Separa os dois. Conversa privada, decisão sua.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 16,
+    text: "Descobriu que o banco de dados de produção não tem backup há 3 semanas. Ninguém percebeu. Você:",
+    optionA: { label: "Agenda correção pro próximo sprint.", correct: false },
+    optionB: { label: "Para tudo e corrige AGORA. Sem backup = risco existencial.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 17,
+    text: "Board pergunta quando o projeto vai ficar pronto. Estimativa real: 6 semanas. PM disse 3. Você:",
+    optionA: { label: "6 semanas. Honestidade com o board, sempre.", correct: true },
+    optionB: { label: "4 semanas. Meio-termo diplomático.", correct: false },
+    timeout_pick: "b"
+  },
+  {
+    id: 18,
+    text: "Cloud provider anuncia aumento de 40% nos custos. CFO quer migrar para alternativa barata em 30 dias. Você:",
+    optionA: { label: "Migra. 30 dias é apertado mas dá.", correct: false },
+    optionB: { label: "Negocia e fica. Migração sob pressão = mais risco e custo.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 19,
+    text: "Founder quer 'emprestar' seu melhor dev para o projeto pessoal dele por 1 mês. Você:",
+    optionA: { label: "Libera. Founder é founder.", correct: false },
+    optionB: { label: "Nega. 1 mês é demais, oferece 2 dias de consultoria.", correct: true },
+    timeout_pick: "a"
+  },
+  {
+    id: 20,
+    text: "Você encontrou uma falha de segurança grave que expõe dados de clientes. Correção leva 48h. Você:",
+    optionA: { label: "Resolve sozinho e discretamente. Sem pânico.", correct: false },
+    optionB: { label: "Grita o alarme. Incidente formal, time mobilizado, clientes notificados.", correct: true },
+    timeout_pick: "a"
+  }
+];
+
+const VERDICTS = [
+  { min: 0, max: 3, text: "Voce destruiu a empresa em tempo recorde. O conselho agradece a transparencia na saida." },
+  { min: 4, max: 6, text: "Sobreviveu. O monolito tambem. Por enquanto." },
+  { min: 7, max: 9, text: "Eficiente, frio, funcional. Exatamente o que o board queria." },
+  { min: 10, max: 10, text: "Impossivel. Voce trapaceou ou nunca trabalhou em startup." }
+];
+
+const TIMER_DURATION = 5000;
+const ROUND_COUNT = 10;
+const NEXT_ROUND_DELAY = 1200;
+const TYPEWRITER_SPEED = 35;
+
+let audioCtx = null;
+let currentRound = 0;
+let score = 0;
+let selectedQuestions = [];
+let timerStart = null;
+let timerRaf = null;
+let answered = false;
+
+const $ = id => document.getElementById(id);
+
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playClick() {
+  initAudio();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = 800;
+  gain.gain.value = 0.08;
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+  osc.stop(audioCtx.currentTime + 0.05);
+}
+
+function playErrorBeep() {
+  initAudio();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = "square";
+  osc.frequency.value = 440;
+  gain.gain.value = 0.15;
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  osc.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.2);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+  osc.stop(audioCtx.currentTime + 0.25);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showScreen(id) {
+  ["start-screen", "game-screen", "end-screen"].forEach(s => {
+    $(s).style.display = s === id ? "block" : "none";
+  });
+}
+
+function startGame() {
+  initAudio();
+  score = 0;
+  currentRound = 0;
+  selectedQuestions = shuffle(QUESTIONS).slice(0, ROUND_COUNT);
+  $("score-display").classList.remove("hidden");
+  updateScore();
+  showScreen("game-screen");
+  loadRound();
+}
+
+function updateScore() {
+  $("score-display").textContent = `${score}/${currentRound}`;
+}
+
+function loadRound() {
+  if (currentRound >= ROUND_COUNT) {
+    endGame();
+    return;
+  }
+
+  answered = false;
+  const q = selectedQuestions[currentRound];
+  $("round-indicator").textContent = `ROUND ${String(currentRound + 1).padStart(2, "0")}/${ROUND_COUNT}`;
+  $("question-text").textContent = q.text;
+  $("btn-a").textContent = q.optionA.label;
+  $("btn-b").textContent = q.optionB.label;
+  $("btn-a").className = "btn-option";
+  $("btn-b").className = "btn-option";
+  $("btn-a").disabled = false;
+  $("btn-b").disabled = false;
+
+  const bar = $("timer-bar");
+  bar.classList.remove("draining", "pulse");
+  bar.style.width = "100%";
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      bar.classList.add("draining");
+      bar.style.width = "0%";
+    });
+  });
+
+  timerStart = performance.now();
+  timerRaf = requestAnimationFrame(timerTick);
+}
+
+function timerTick(now) {
+  if (answered) return;
+  const elapsed = now - timerStart;
+
+  if (elapsed >= TIMER_DURATION - 1500) {
+    $("timer-bar").classList.add("pulse");
+  }
+
+  if (elapsed >= TIMER_DURATION) {
+    handleTimeout();
+    return;
+  }
+  timerRaf = requestAnimationFrame(timerTick);
+}
+
+function handleTimeout() {
+  if (answered) return;
+  answered = true;
+
+  const q = selectedQuestions[currentRound];
+  const pick = q.timeout_pick;
+
+  playErrorBeep();
+
+  const overlay = $("flash-overlay");
+  overlay.classList.remove("active");
+  void overlay.offsetWidth;
+  overlay.classList.add("active");
+  setTimeout(() => overlay.classList.remove("active"), 700);
+
+  const btnPicked = pick === "a" ? $("btn-a") : $("btn-b");
+  const btnOther = pick === "a" ? $("btn-b") : $("btn-a");
+  const pickedOption = pick === "a" ? q.optionA : q.optionB;
+  const otherOption = pick === "a" ? q.optionB : q.optionA;
+
+  btnPicked.classList.add("wrong");
+  btnPicked.disabled = true;
+  btnOther.disabled = true;
+
+  if (otherOption.correct) {
+    btnOther.classList.add("correct");
+  }
+
+  currentRound++;
+  updateScore();
+
+  setTimeout(loadRound, NEXT_ROUND_DELAY);
+}
+
+function handleAnswer(pick) {
+  if (answered) return;
+  answered = true;
+
+  playClick();
+
+  if (timerRaf) cancelAnimationFrame(timerRaf);
+  const bar = $("timer-bar");
+  bar.classList.remove("draining", "pulse");
+  const computed = getComputedStyle(bar).width;
+  bar.style.width = computed;
+
+  const q = selectedQuestions[currentRound];
+  const chosen = pick === "a" ? q.optionA : q.optionB;
+  const other = pick === "a" ? q.optionB : q.optionA;
+  const btnPicked = pick === "a" ? $("btn-a") : $("btn-b");
+  const btnOther = pick === "a" ? $("btn-b") : $("btn-a");
+
+  if (chosen.correct) {
+    score++;
+    btnPicked.classList.add("correct");
+  } else {
+    btnPicked.classList.add("wrong");
+    if (other.correct) btnOther.classList.add("correct");
+  }
+
+  btnPicked.disabled = true;
+  btnOther.disabled = true;
+
+  currentRound++;
+  updateScore();
+
+  setTimeout(loadRound, NEXT_ROUND_DELAY);
+}
+
+function endGame() {
+  $("score-display").classList.add("hidden");
+  showScreen("end-screen");
+
+  const verdict = VERDICTS.find(v => score >= v.min && score <= v.max);
+  $("memo-score").textContent = `RESULTADO: ${score}/${ROUND_COUNT}`;
+
+  const body = $("memo-body");
+  body.innerHTML = "";
+  typeWriter(body, verdict.text, 0);
+}
+
+function typeWriter(el, text, i) {
+  if (i < text.length) {
+    el.textContent = text.slice(0, i + 1);
+    const cursor = document.createElement("span");
+    cursor.className = "cursor-blink";
+    cursor.textContent = "_";
+    el.appendChild(cursor);
+    setTimeout(() => typeWriter(el, text, i + 1), TYPEWRITER_SPEED);
+  } else {
+    el.textContent = text;
+    $("btn-restart").classList.remove("hidden");
+  }
+}
+
+$("btn-start").addEventListener("click", startGame);
+$("btn-a").addEventListener("click", () => handleAnswer("a"));
+$("btn-b").addEventListener("click", () => handleAnswer("b"));
+$("btn-restart").addEventListener("click", () => {
+  $("btn-restart").classList.add("hidden");
+  startGame();
+});
+</script>
+</body>
+</html>
