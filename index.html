@@ -111,9 +111,18 @@
     transition: background 0.2s, box-shadow 0.2s;
   }
 
-  .btn-start:hover {
+  .btn-start:hover:not(:disabled) {
     background: #E74C3C;
     box-shadow: 0 0 30px rgba(192, 57, 43, 0.5);
+  }
+
+  .btn-start:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-start.error {
+    background: #8B0000;
   }
 
   /* GAME SCREEN */
@@ -512,155 +521,9 @@
 <div class="footer">Made with ☕ and bad decisions</div>
 
 <script>
-const QUESTIONS = [
-  {
-    id: 1,
-    text: "Seu melhor engenheiro sênior recebeu uma proposta 40% maior. Ele gosta da empresa mas dinheiro fala alto. Você:",
-    optionA: { label: "Paga. Cobre a oferta e negocia retenção.", correct: true },
-    optionB: { label: "Deixa ir. Ninguém é insubstituível.", correct: false },
-    timeout_pick: "b"
-  },
-  {
-    id: 2,
-    text: "Sexta-feira, 17h, véspera de feriado prolongado. Deploy de feature crítica passou nos testes mas um dev júnior tem 'um pressentimento ruim'. Você:",
-    optionA: { label: "Manda ver. Testes passaram, é isso.", correct: false },
-    optionB: { label: "Segura. Deploy na terça com olhos frescos.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 3,
-    text: "O monolito tem 8 anos. Time quer reescrever tudo em microserviços. Prazo estimado: 6 meses (leia-se 18). Você:",
-    optionA: { label: "Aprova o rewrite. O monolito vai morrer de qualquer jeito.", correct: false },
-    optionB: { label: "Aguenta. Strangler pattern, módulo por módulo.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 4,
-    text: "Tech lead quer adotar uma linguagem nova que só ele domina. Promete produtividade 3x. Você:",
-    optionA: { label: "Deixa experimentar num serviço isolado.", correct: false },
-    optionB: { label: "Bloqueia. Stack exótica sem suporte do time é risco.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 5,
-    text: "Um investidor em potencial quer acesso ao repositório para 'due diligence técnica'. Você:",
-    optionA: { label: "Libera. Investidor é prioridade.", correct: false },
-    optionB: { label: "Consulta jurídico primeiro. NDA e escopo definido.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 6,
-    text: "Produção caiu às 3h da manhã. Time fez hotfix às 5h. Agora são 9h e o hotfix tem um bug menor. Você:",
-    optionA: { label: "Outro hotfix. Resolve rápido.", correct: false },
-    optionB: { label: "Rollback. Time descansa, resolve amanhã com calma.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 7,
-    text: "Produto vai lançar em 2 dias. QA encontrou 3 bugs de baixa severidade. PM quer adiar. Você:",
-    optionA: { label: "Lança. Bugs menores, prazo é real, corrige no próximo sprint.", correct: true },
-    optionB: { label: "Adia. Zero bugs é o padrão.", correct: false },
-    timeout_pick: "b"
-  },
-  {
-    id: 8,
-    text: "Time pede 2 sprints dedicados para pagar tech debt. CEO quer features. Você:",
-    optionA: { label: "Aprova. Tech debt é investimento, não luxo.", correct: true },
-    optionB: { label: "Nega. Features primeiro, debt depois.", correct: false },
-    timeout_pick: "b"
-  },
-  {
-    id: 9,
-    text: "Dev júnior derrubou produção por não seguir o processo de deploy. Primeira vez dele. Você:",
-    optionA: { label: "Demite. Exemplo para o time.", correct: false },
-    optionB: { label: "Conversa. Melhora o processo e faz post-mortem.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 10,
-    text: "Budget para contratar: 1 sênior ou 3 juniors. Projeto complexo com deadline apertado. Você:",
-    optionA: { label: "1 sênior. Qualidade > quantidade.", correct: true },
-    optionB: { label: "3 juniors. Mais mãos, mais velocidade.", correct: false },
-    timeout_pick: "b"
-  },
-  {
-    id: 11,
-    text: "CEO quer um dashboard 'bonitinho' para mostrar ao board. Não tem valor técnico. Você:",
-    optionA: { label: "Faz. Escolha suas batalhas, CEO feliz = budget aprovado.", correct: true },
-    optionB: { label: "Recusa. Time não é fábrica de PowerPoint.", correct: false },
-    timeout_pick: "b"
-  },
-  {
-    id: 12,
-    text: "Equipe de segurança bloqueou um deploy por vulnerabilidade média. Time acha que é falso positivo. Você:",
-    optionA: { label: "Bypassa segurança. Time sabe o que faz.", correct: false },
-    optionB: { label: "Espera aprovação. Não bypassa segurança.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 13,
-    text: "O sistema caiu por uma decisão arquitetural SUA de 6 meses atrás. Board quer explicações. Você:",
-    optionA: { label: "Conta a verdade. Assume o erro e apresenta o plano de correção.", correct: true },
-    optionB: { label: "Culpa a complexidade. Ninguém previa esse cenário.", correct: false },
-    timeout_pick: "b"
-  },
-  {
-    id: 14,
-    text: "Dev sênior sumiu. Não responde há 2 dias. Projeto crítico parado. Você:",
-    optionA: { label: "Começa processo de demissão. Abandono é inaceitável.", correct: false },
-    optionB: { label: "Espera mais 2 dias. Pode ser emergência pessoal.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 15,
-    text: "Dois tech leads estão brigando na daily sobre arquitetura. Time está desconfortável. Você:",
-    optionA: { label: "Deixa resolver entre eles. São adultos.", correct: false },
-    optionB: { label: "Separa os dois. Conversa privada, decisão sua.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 16,
-    text: "Descobriu que o banco de dados de produção não tem backup há 3 semanas. Ninguém percebeu. Você:",
-    optionA: { label: "Agenda correção para o próximo sprint.", correct: false },
-    optionB: { label: "Para tudo e corrige AGORA. Sem backup = risco existencial.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 17,
-    text: "Board pergunta quando o projeto vai ficar pronto. Estimativa real: 6 semanas. PM disse 3. Você:",
-    optionA: { label: "6 semanas. Honestidade com o board, sempre.", correct: true },
-    optionB: { label: "4 semanas. Meio-termo diplomático.", correct: false },
-    timeout_pick: "b"
-  },
-  {
-    id: 18,
-    text: "Cloud provider anuncia aumento de 40% nos custos. CFO quer migrar para alternativa barata em 30 dias. Você:",
-    optionA: { label: "Migra. 30 dias é apertado mas dá.", correct: false },
-    optionB: { label: "Negocia e fica. Migração sob pressão = mais risco e custo.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 19,
-    text: "Founder quer 'emprestar' seu melhor dev para o projeto pessoal dele por 1 mês. Você:",
-    optionA: { label: "Libera. Founder é founder.", correct: false },
-    optionB: { label: "Nega. 1 mês é demais, oferece 2 dias de consultoria.", correct: true },
-    timeout_pick: "a"
-  },
-  {
-    id: 20,
-    text: "Você encontrou uma falha de segurança grave que expõe dados de clientes. Correção leva 48h. Você:",
-    optionA: { label: "Resolve sozinho e discretamente. Sem pânico.", correct: false },
-    optionB: { label: "Grita o alarme. Incidente formal, time mobilizado, clientes notificados.", correct: true },
-    timeout_pick: "a"
-  }
-];
-
-const VERDICTS = [
-  { min: 0, max: 3, text: "Você destruiu a empresa em tempo recorde. O conselho agradece a transparência na saída." },
-  { min: 4, max: 6, text: "Sobreviveu. O monolito também. Por enquanto." },
-  { min: 7, max: 9, text: "Eficiente, frio, funcional. Exatamente o que o board queria." },
-  { min: 10, max: 10, text: "Impossível. Você trapaceou ou nunca trabalhou em startup." }
-];
+let QUESTIONS = [];
+let VERDICTS = [];
+let dataLoaded = false;
 
 let TIMER_DURATION = 5000;
 const ROUND_COUNT = 10;
@@ -676,6 +539,28 @@ let timerRaf = null;
 let answered = false;
 
 const $ = id => document.getElementById(id);
+
+async function loadGameData() {
+  const btn = $("btn-start");
+  btn.disabled = true;
+  btn.textContent = "CARREGANDO...";
+  btn.classList.remove("error");
+
+  try {
+    const res = await fetch("./data/questions.json");
+    if (!res.ok) throw new Error(res.statusText);
+    const data = await res.json();
+    QUESTIONS = data.questions;
+    VERDICTS = data.verdicts;
+    dataLoaded = true;
+    btn.disabled = false;
+    btn.textContent = "INICIAR";
+  } catch {
+    btn.textContent = "ERRO - CLIQUE PARA TENTAR";
+    btn.classList.add("error");
+    btn.disabled = false;
+  }
+}
 
 function initAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -728,6 +613,7 @@ function openDifficultyModal() {
 }
 
 function selectDifficulty(multiplier) {
+  if (!dataLoaded) return;
   TIMER_DURATION = 5000 * multiplier;
   $("difficulty-modal").classList.remove("active");
   startGame();
@@ -908,7 +794,13 @@ function shareResult() {
   });
 }
 
-$("btn-start").addEventListener("click", openDifficultyModal);
+$("btn-start").addEventListener("click", () => {
+  if (!dataLoaded) {
+    loadGameData();
+    return;
+  }
+  openDifficultyModal();
+});
 document.querySelectorAll(".btn-difficulty").forEach(btn => {
   btn.addEventListener("click", () => selectDifficulty(Number(btn.dataset.multiplier)));
 });
@@ -920,6 +812,8 @@ $("btn-restart").addEventListener("click", () => {
   openDifficultyModal();
 });
 $("btn-share").addEventListener("click", shareResult);
+
+loadGameData();
 </script>
 </body>
 </html>
